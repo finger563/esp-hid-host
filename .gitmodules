@@ -1,0 +1,6 @@
+[submodule "components/esp-nimble-cpp"]
+	path = components/esp-nimble-cpp
+	url = git@github.com:h2zero/esp-nimble-cpp
+[submodule "components/espp"]
+	path = components/espp
+	url = git@github.com:esp-cpp/espp
