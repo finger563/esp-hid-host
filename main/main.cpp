@@ -9,13 +9,16 @@
  */
 #include <NimBLEDevice.h>
 
+#include "driver/gpio.h"
+
 extern "C" {void app_main(void);}
 
 static NimBLEAdvertisedDevice* advDevice;
 
 static bool doConnect = false;
 static uint32_t scanTime = 0; /** scan time in milliseconds, 0 = scan forever */
-
+static constexpr size_t RECV_GPIO = 21;
+static int pin_level = 0;
 
 /**  None of these are required as they will be handled by the library with defaults. **
  **                       Remove as you see fit for your needs                        */  
@@ -90,13 +93,19 @@ class scanCallbacks: public NimBLEScanCallbacks {
 
 /** Notification / Indication receiving handler callback */
 void notifyCB(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData, size_t length, bool isNotify){
-  std::string str = (isNotify == true) ? "Notification" : "Indication";
-  str += " from ";
-  str += pRemoteCharacteristic->getRemoteService()->getClient()->getPeerAddress().toString();
-  str += ": Service = " + pRemoteCharacteristic->getRemoteService()->getUUID().toString();
-  str += ", Characteristic = " + pRemoteCharacteristic->getUUID().toString();
-  str += ", Value = " + std::string((char*)pData, length);
-  printf("%s\n", str.c_str());
+  // std::string str = (isNotify == true) ? "Notification" : "Indication";
+  // str += " from ";
+  // str += pRemoteCharacteristic->getRemoteService()->getClient()->getPeerAddress().toString();
+  // str += ": Service = " + pRemoteCharacteristic->getRemoteService()->getUUID().toString();
+  // str += ", Characteristic = " + pRemoteCharacteristic->getUUID().toString();
+  // str += ", Value = " + std::string((char*)pData, length);
+  // printf("%s\n", str.c_str());
+  printf("\x1B[1A"); // go up a line
+  printf("\x1B[2K\r"); // erase the line
+  printf("Got notification, length = %d B\n", length);
+  // toogle the pin
+  pin_level = pin_level ? 0 : 1;
+  gpio_set_level((gpio_num_t)RECV_GPIO, pin_level);
 }
 
 
@@ -267,7 +276,6 @@ void app_main (void){
   NimBLEDevice::init("");
 
   // set up the gpio we'll toggle every time we get an input report
-  static constexpr size_t RECV_GPIO = 21;
   static int pin_level = 0;
   gpio_config_t io_conf;
   memset(&io_conf, 0, sizeof(io_conf));
