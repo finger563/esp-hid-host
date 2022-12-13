@@ -9,6 +9,8 @@
  */
 #include <NimBLEDevice.h>
 
+#include "format.hpp"
+
 #include "driver/gpio.h"
 
 extern "C" {void app_main(void);}
@@ -100,9 +102,12 @@ void notifyCB(NimBLERemoteCharacteristic* pRemoteCharacteristic, uint8_t* pData,
   // str += ", Characteristic = " + pRemoteCharacteristic->getUUID().toString();
   // str += ", Value = " + std::string((char*)pData, length);
   // printf("%s\n", str.c_str());
-  printf("\x1B[1A"); // go up a line
-  printf("\x1B[2K\r"); // erase the line
-  printf("Got notification, length = %d B\n", length);
+  fmt::print("\x1B[1A" // go up a line
+             "\x1B[2K\r" // erase the line
+             "Got notification from service {}, characteristic {}, length = {} B\n",
+             pRemoteCharacteristic->getRemoteService()->getUUID().toString(),
+             pRemoteCharacteristic->getUUID().toString(),
+             length);
   // toogle the pin
   pin_level = pin_level ? 0 : 1;
   gpio_set_level((gpio_num_t)RECV_GPIO, pin_level);
